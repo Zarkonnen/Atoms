@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -22,29 +23,51 @@ public class SetupFrame extends JFrame {
 
 			for (final Field fld : AtomSetup.class.getDeclaredFields()) {
 				add(new JLabel(fld.getName()));
-				final JTextField tf = new JTextField("" + fld.get(setup));
-				tf.getDocument().addDocumentListener(new DocumentListener() {
-					public void insertUpdate(DocumentEvent e) { update(); }
-					public void removeUpdate(DocumentEvent e) { update(); }
-					public void changedUpdate(DocumentEvent e) { update(); }
-
-					void update() {
-						if ((fld.getType() + "").equals("double")) {
+				if (fld.getType() == AtomSetup.Packing.class) {
+					final JComboBox cb = new JComboBox(AtomSetup.Packing.values());
+					cb.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent ae) {
 							try {
-								fld.set(setup, Double.parseDouble(tf.getText()));
+								fld.set(setup, cb.getSelectedItem());
 							} catch (Exception e) {
-								//e.printStackTrace();
-							}
-						} else {
-							try {
-								fld.set(setup, Integer.parseInt(tf.getText()));
-							} catch (Exception e) {
-								//e.printStackTrace();
+								e.printStackTrace();
 							}
 						}
-					}
-				});
-				add(tf);
+					});
+					add(cb);
+				} else {
+					final JTextField tf = new JTextField("" + fld.get(setup));
+					tf.getDocument().addDocumentListener(new DocumentListener() {
+						public void insertUpdate(DocumentEvent e) { update(); }
+						public void removeUpdate(DocumentEvent e) { update(); }
+						public void changedUpdate(DocumentEvent e) { update(); }
+
+						void update() {
+							if ((fld.getType() + "").equals("double")) {
+								try {
+									fld.set(setup, Double.parseDouble(tf.getText()));
+								} catch (Exception e) {
+									//e.printStackTrace();
+								}
+							} else {
+								if ((fld.getType() + "").contains("String")) {
+									try {
+										fld.set(setup, tf.getText());
+									} catch (Exception e) {
+										//e.printStackTrace();
+									}
+								} else {
+									try {
+										fld.set(setup, Integer.parseInt(tf.getText()));
+									} catch (Exception e) {
+										//e.printStackTrace();
+									}
+								}
+							}
+						}
+					});
+					add(tf);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
